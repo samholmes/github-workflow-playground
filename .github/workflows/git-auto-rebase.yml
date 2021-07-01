@@ -1,0 +1,11 @@
+name: Git Auto-Rebase
+
+on: [pull_request_review]
+
+jobs:
+  git-auto-rebase:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1.1.0 # Always pin
+    - name: Block WIP PR
+      uses: samholmes/block-wip-pr-action@master
