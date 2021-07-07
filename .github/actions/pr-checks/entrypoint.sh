@@ -15,16 +15,19 @@ main() {
 
   # Using git directly because the $GITHUB_EVENT_PATH file only shows commits in
   # most recent push.
+  heading "Fetching base branch:"
   /usr/bin/git -c protocol.version=2 fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin "${BASE_REF}:__ci_base"
+  heading "Fetching PR branch:"
   /usr/bin/git -c protocol.version=2 fetch --no-tags --prune --progress --no-recurse-submodules origin "${PR_REF}:__ci_pr"
+  
   # Get the list before the "|| true" to fail the script when the git cmd fails.
   COMMIT_LIST=`/usr/bin/git log --pretty=format:'%s %h <- %p ' __ci_base..__ci_pr`
 
-  echo "Commit list:"
+  heading "Commit list:"
   echo "$COMMIT_LIST"
 
   FIXUP_COUNT=`echo "$COMMIT_LIST" | grep fixup! | wc -l || true`
-  echo "Fixup! commits: $FIXUP_COUNT"
+  heading "Fixup! commits: $FIXUP_COUNT"
   if [[ "$FIXUP_COUNT" -gt "0" ]]; then
     /usr/bin/git log --pretty=format:%s __ci_base..__ci_pr | grep fixup!
     echo "failing..."
@@ -32,7 +35,7 @@ main() {
   fi
 
   SQUASH_COUNT=`echo "$COMMIT_LIST" | grep squash! | wc -l || true`
-  echo "Squash! commits: $SQUASH_COUNT"
+  heading "Squash! commits: $SQUASH_COUNT"
   if [[ "$SQUASH_COUNT" -gt "0" ]]; then
     /usr/bin/git log --pretty=format:%s __ci_base..__ci_pr | grep squash!
     echo "failing..."
@@ -40,12 +43,18 @@ main() {
   fi
 
   MERGE_COUNT=`echo "$COMMIT_LIST" | grep -E ' <- ([^ ]+ ){2,}$' | wc -l || true`
-  echo "Merge commits: $MERGE_COUNT"
+  heading "Merge commits: $MERGE_COUNT"
   if [[ "$MERGE_COUNT" -gt "0" ]]; then
     /usr/bin/git log --pretty=format:'%s %h <- %p ' __ci_base..__ci_pr | grep -E ' <- ([^ ]+ ){2,}$'
     echo "failing..."
     exit 1
   fi
+}
+
+heading() {
+  echo "=========================================="
+  echo $1
+  echo "------------------------------------------"
 }
 
 main
