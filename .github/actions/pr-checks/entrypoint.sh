@@ -27,34 +27,44 @@ main() {
   echo "$COMMIT_LIST"
 
   FIXUP_COUNT=`echo "$COMMIT_LIST" | grep fixup! | wc -l || true`
-  heading "Fixup! commits: $FIXUP_COUNT"
-  if [[ "$FIXUP_COUNT" -gt "0" ]]; then
-    /usr/bin/git log --pretty=format:%s __ci_base..__ci_pr | grep fixup!
-    echo "failing..."
-    exit 1
-  fi
-
   SQUASH_COUNT=`echo "$COMMIT_LIST" | grep squash! | wc -l || true`
-  heading "Squash! commits: $SQUASH_COUNT"
-  if [[ "$SQUASH_COUNT" -gt "0" ]]; then
-    /usr/bin/git log --pretty=format:%s __ci_base..__ci_pr | grep squash!
-    echo "failing..."
+  MERGE_COUNT=`echo "$COMMIT_LIST" | grep -E ' <- ([^ ]+ ){2,}$' | wc -l || true`
+  heading "Results:"
+  echo "Fixup! commits: $FIXUP_COUNT"
+  echo "Squash! commits: $SQUASH_COUNT"
+  echo "Merge commits: $MERGE_COUNT"
+  
+  if [[ "$FIXUP_COUNT" -gt "0" ]]; then
+    heading "Bad commits:"
+    /usr/bin/git log --pretty=format:%s __ci_base..__ci_pr | grep fixup!
     exit 1
   fi
 
-  MERGE_COUNT=`echo "$COMMIT_LIST" | grep -E ' <- ([^ ]+ ){2,}$' | wc -l || true`
-  heading "Merge commits: $MERGE_COUNT"
-  if [[ "$MERGE_COUNT" -gt "0" ]]; then
-    /usr/bin/git log --pretty=format:'%s %h <- %p ' __ci_base..__ci_pr | grep -E ' <- ([^ ]+ ){2,}$'
-    echo "failing..."
+  if [[ "$SQUASH_COUNT" -gt "0" ]]; then
+    heading "Bad commits:"
+    /usr/bin/git log --pretty=format:%s __ci_base..__ci_pr | grep squash!
     exit 1
   fi
+
+  if [[ "$MERGE_COUNT" -gt "0" ]]; then
+    heading "Bad commits:"
+    /usr/bin/git log --pretty=format:'%s %h <- %p ' __ci_base..__ci_pr | grep -E ' <- ([^ ]+ ){2,}$'
+    exit 1
+  fi
+  
+  doubleline
 }
 
 heading() {
-  echo "=========================================="
+  doubleline
   echo $1
+  line
+}
+line() {
   echo "------------------------------------------"
+}
+doubleline() {
+  echo "=========================================="
 }
 
 main
