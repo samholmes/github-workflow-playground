@@ -16,7 +16,7 @@ main() {
   # Using git directly because the $GITHUB_EVENT_PATH file only shows commits in
   # most recent push.
   heading "Fetching base branch:"
-  /usr/bin/git -c protocol.version=2 fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin "${BASE_REF}:__ci_base"
+  /usr/bin/git -c protocol.version=2 fetch --no-tags --prune --progress --no-recurse-submodules --depth=500 origin "${BASE_REF}:__ci_base"
   heading "Fetching PR branch:"
   /usr/bin/git -c protocol.version=2 fetch --no-tags --prune --progress --no-recurse-submodules origin "${PR_REF}:__ci_pr"
   
